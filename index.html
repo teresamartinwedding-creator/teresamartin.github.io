@@ -1,150 +1,384 @@
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A Letter For You</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-  
-    body {
-      font-family: Georgia, serif;
-      background: linear-gradient(160deg, #f3e9dc, #e8d5c4);
-      /* tall page so there's room to scroll */
-      height: 300vh;
-    }
-  
-    /* pin the envelope in the center of the viewport while you scroll */
-    .stage {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  
-    .envelope {
-      position: relative;
-      width: 340px;
-      height: 230px;
-      transition: transform 0.6s ease;
-    }
-  
-    /* envelope body */
-    .envelope .body {
-      position: absolute;
-      inset: 0;
-      background: #d9b382;
-      border-radius: 6px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-      z-index: 3;
-    }
-  
-    /* front pocket (covers bottom of the letter) */
-    .envelope .pocket {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      height: 60%;
-      background: #c9a06e;
-      border-radius: 0 0 6px 6px;
-      z-index: 5;
-      clip-path: polygon(0 35%, 50% 0, 100% 35%, 100% 100%, 0 100%);
-    }
-  
-    /* the flap that opens */
-    .envelope .flap {
-      position: absolute;
-      top: 0;
-      width: 100%;
-      height: 55%;
-      background: #cfa871;
-      transform-origin: top center;
-      transition: transform 0.6s ease;
-      clip-path: polygon(0 0, 100% 0, 50% 100%);
-      z-index: 6;
-    }
-  
-    /* the letter that rises out */
-    .letter {
-      position: absolute;
-      left: 50%;
-      top: 20px;
-      width: 88%;
-      transform: translateX(-50%);
-      background: #fffdf7;
-      border-radius: 4px;
-      padding: 16px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-      z-index: 4;
-      transition: transform 0.7s ease 0.3s;
-      text-align: center;
-    }
-  
-    .letter img {
-      width: 100%;
-      border-radius: 4px;
-      display: block;
-      margin-bottom: 10px;
-    }
-  
-    .letter p {
-      color: #5a4636;
-      font-size: 15px;
-      line-height: 1.5;
-    }
-  
-    /* ---- OPEN STATE (toggled by scroll) ---- */
-    .open .flap {
-      transform: rotateX(180deg);
-      z-index: 1;               /* flap drops behind once open */
-    }
-    .open .letter {
-      transform: translate(-50%, -180px);
-    }
-  
-    .hint {
-      position: fixed;
-      bottom: 24px;
-      width: 100%;
-      text-align: center;
-      color: #7a6650;
-      font-size: 14px;
-      letter-spacing: 1px;
-      animation: bob 1.5s ease-in-out infinite;
-    }
-    @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
-    .open ~ .hint { opacity: 0; transition: opacity .4s; }
-  </style>
-  </head>
-  <body>
-  
-    <div class="stage">
-      <div class="envelope" id="envelope">
-        <div class="letter">
-          <img src="photo.jpg" alt="A special photo">
-          <p>Thinking of you 💛</p>
-        </div>
-        <div class="body"></div>
-        <div class="pocket"></div>
-        <div class="flap"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Letter For You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@400;700&family=Cormorant+Garamond:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: Georgia, serif;
+    background: linear-gradient(160deg, #f3e9dc, #e8d5c4);
+    height: 400vh;   /* scroll room for the sequence */
+  }
+
+  .stage {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .envelope {
+    position: relative;
+    width: 340px;
+    height: 230px;
+  }
+
+  .envelope .body {
+    position: absolute;
+    inset: 0;
+    background: #d9b382;
+    border-radius: 6px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    z-index: 3;
+  }
+
+  .envelope .pocket {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60%;
+    background: #c9a06e;
+    border-radius: 0 0 6px 6px;
+    z-index: 7;  /* in front so the preview's bottom stays tucked while closed */
+    clip-path: polygon(0 35%, 50% 0, 100% 35%, 100% 100%, 0 100%);
+  }
+
+  .envelope .flap {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 55%;
+    background: #cfa871;
+    transform-origin: top center;
+    transition: transform 0.6s ease;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    z-index: 6;
+  }
+
+  /* ---------- PHASE 1: cropped preview that rises out of the envelope ---------- */
+  .preview {
+    position: absolute;
+    left: 50%;
+    top: 20px;
+    width: 88%;
+    height: 190px;
+    background: #fffdf7;
+    border-radius: 4px;
+    padding: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    z-index: 5;                 /* just below the top flap (6) */
+    text-align: center;
+    overflow: hidden;           /* clip the tall photo while inside */
+    transform: translateX(-50%);
+    will-change: transform, opacity;
+  }
+  .preview img {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;          /* cropped look you liked */
+    border-radius: 4px;
+    display: block;
+    margin: 0 auto 8px;
+  }
+  .preview p {
+    color: #5a4636;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  /* ---------- PHASE 2: full letter card that scales up smoothly ---------- */
+  /* Outer .letter is positioned + scaled by JS. The inner .flipper does the
+     3D flip so the two transforms never fight. */
+  .letter {
+    position: fixed;            /* position relative to the viewport */
+    left: 50%;
+    top: 24px;                  /* rest near the TOP of the viewport */
+    width: fit-content;         /* shrink-wrap the photo, don't force a width */
+    max-width: 98vw;
+    z-index: 10;
+    transform-origin: top center;
+    will-change: transform, opacity;
+    opacity: 0;                 /* hidden during phase 1 */
+    visibility: hidden;
+    perspective: 1600px;        /* 3D depth for the flip */
+  }
+
+  .flipper {
+    position: relative;
+    width: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+  .flipped .flipper {
+    transform: rotateY(180deg);
+  }
+
+  .face {
+    /* both faces share the paper look */
+    background: #fffdf7;
+    border-radius: 10px;
+    /* bigger, even white frame around the photo on all sides */
+    padding: 12px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    backface-visibility: hidden;
+    text-align: center;
+  }
+  /* back face is stacked on top of the front, pre-rotated */
+  .card-back {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 6% 8%;
+  }
+
+  .card-front img {
+    /* leave room for the ~12px white frame on each side so the whole
+       card (photo + frame + caption) stays within the viewport.
+       Top-anchored (top:24px) with clearance for the bottom hint. */
+    max-width: calc(96vw - 24px);
+    max-height: calc(84vh - 70px);
+    width: auto;
+    height: auto;
+    object-fit: contain;        /* whole photo, uncropped */
+    border-radius: 6px;
+    display: block;
+    margin: 0 auto 12px;        /* centered, small gap before caption */
+  }
+  .face p {
+    color: #5a4636;
+    font-size: 18px;
+    line-height: 1.5;
+  }
+  /* ----- back-face visual hierarchy ----- */
+  .card-back .eyebrow {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: normal;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-size: 13px;
+    color: #9a8a76;
+    margin-bottom: 10px;
+  }
+  .card-back .names {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 46px;
+    line-height: 1.1;
+    color: #000;
+  }
+  .card-back .rule {
+    color: #b08d5b;
+    font-size: 18px;
+    margin: 14px 0 18px;
+  }
+  .card-back .group {
+    margin-bottom: 16px;
+  }
+  .card-back .primary {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 24px;
+    color: #000;
+    line-height: 1.25;
+  }
+  .card-back .secondary {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: normal;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    color: #7a6b58;
+    line-height: 1.3;
+    margin-top: 2px;
+  }
+  .card-back .footnote {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 16px;
+    color: #9a8a76;
+    margin-top: 4px;
+  }
+
+  /* phase 2 active: reveal the card (JS drives transform + fade-in opacity) */
+  .expanding .letter {
+    visibility: visible;
+  }
+
+  /* flap opening: discrete, natural */
+  .open .flap {
+    transform: rotateX(180deg);
+    z-index: 1;
+  }
+  /* fade the envelope shell once we enter phase 2 */
+  .expanding .body,
+  .expanding .pocket,
+  .expanding .flap {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .hint {
+    position: fixed;
+    bottom: 24px;
+    width: 100%;
+    text-align: center;
+    color: #7a6650;
+    font-size: 14px;
+    letter-spacing: 1px;
+    animation: bob 1.5s ease-in-out infinite;
+    transition: opacity .4s;
+  }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+  .hint.hide { opacity: 0; }
+</style>
+</head>
+<body>
+
+  <div class="stage" id="stage">
+    <div class="envelope" id="envelope">
+      <!-- Phase 1: cropped preview (rises out of envelope) -->
+      <div class="preview" id="preview">
+        <img src="photo.jpg" alt="A special photo">
+        <p>Martin & Teresa's Wedding</p>
       </div>
+      <!-- Phase 2: full letter card (scales up, then flips near the bottom) -->
+      <div class="letter" id="letter">
+        <div class="flipper" id="flipper">
+          <div class="face card-front">
+            <img src="photo.jpg" alt="A special photo">
+            <p>The Big Day Is Almost Here...</p>
+          </div>
+          <div class="face card-back">
+            <p class="eyebrow">You're Invited</p>
+            <p class="names">Martin &amp; Teresa</p>
+            <div class="rule">✦ ❦ ✦</div>
+            <div class="group">
+              <p class="primary">Friday, October 2nd</p>
+              <p class="secondary">Doors open 4:00 PM</p>
+            </div>
+            <div class="group">
+              <p class="primary">Thornewood Castle</p>
+              <p class="secondary">8601 N Thorne Lane SW &middot; Lakewood, WA</p>
+            </div>
+            <p class="footnote">Reception &amp; dinner to follow</p>
+          </div>
+        </div>
+      </div>
+      <div class="body"></div>
+      <div class="pocket"></div>
+      <div class="flap"></div>
     </div>
-  
-    <div class="hint">↓ scroll to open ↓</div>
-  
-    <script>
-      const envelope = document.getElementById('envelope');
-      // open once the user scrolls past ~15% of the page
-      window.addEventListener('scroll', () => {
-        const trigger = window.innerHeight * 0.15;
-        if (window.scrollY > trigger) {
-          envelope.classList.add('open');
-        } else {
-          envelope.classList.remove('open');
-        }
-      });
-    </script>
-  
-  </body>
-  </html>
+  </div>
+
+  <div class="hint" id="hint">↓ scroll to open ↓</div>
+
+  <script>
+    const stage    = document.getElementById('stage');
+    const envelope = document.getElementById('envelope');
+    const preview  = document.getElementById('preview');
+    const letter   = document.getElementById('letter');
+    const hint     = document.getElementById('hint');
+
+    const RISE = 120;  // px the cropped preview travels up in phase 1
+
+    function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+    function ease(t) { return t * t * t * (t * (t * 6 - 15) + 10); } // smootherstep
+
+    function onScroll() {
+      const vh = window.innerHeight;
+      const y  = window.scrollY;
+
+      // --- scroll milestones ---
+      const flapOpenAt = vh * 0.12;   // flap flips open
+      const riseStart  = vh * 0.20;   // phase 1: preview begins rising
+      const riseEnd    = vh * 0.55;   // phase 1: preview fully risen
+      const expandStart = riseEnd;    // phase 2: begins right where rise ends
+      const expandEnd   = vh * 1.40;  // phase 2: photo fully centered + full size
+
+      // Flap
+      const opened = y > flapOpenAt;
+      stage.classList.toggle('open', opened);
+
+      // ---------- PHASE 1: cropped preview rises ----------
+      const riseP = ease(clamp((y - riseStart) / (riseEnd - riseStart), 0, 1));
+      preview.style.transform =
+        `translateX(-50%) translateY(${-RISE * riseP}px)`;
+
+      // Fade the cropped preview out over the last ~30% of the rise so it
+      // dissolves to transparent just as it reaches the top.
+      const fadeStart = 0.70;   // fraction of the rise where fade begins
+      const fadeP = clamp((riseP - fadeStart) / (1 - fadeStart), 0, 1);
+      preview.style.opacity = (1 - fadeP).toFixed(3);
+
+      // ---------- PHASE 2: full card scales up ----------
+      const inPhase2 = y >= expandStart;
+      stage.classList.toggle('expanding', inPhase2);
+
+      const p = ease(clamp((y - expandStart) / (expandEnd - expandStart), 0, 1));
+
+      if (inPhase2) {
+        // Start the full card at the same on-screen size & position the
+        // risen preview occupied, so the handoff is seamless, then grow
+        // it and settle it near the TOP of the viewport.
+        const previewRect = preview.getBoundingClientRect();
+        const finalW = letter.offsetWidth || 1;
+        const startScale = clamp(previewRect.width / finalW, 0.05, 1);
+        const scale = startScale + (1 - startScale) * p;
+
+        // The card is anchored (transform-origin: top center) at
+        // (viewport centerX, top:24px). Compute how far the risen preview's
+        // center sits from that anchor, and interpolate toward 0 as p -> 1.
+        const REST_TOP = 24;    // must match .letter { top }
+        const startX = (previewRect.left + previewRect.width / 2)
+                       - window.innerWidth / 2;
+        const startY = (previewRect.top + previewRect.height / 2) - REST_TOP;
+
+        const tx = startX * (1 - p);   // -> 0 (centered) as p -> 1
+        const ty = startY * (1 - p);   // -> 0 (rests at top) as p -> 1
+
+        letter.style.transform =
+          `translate(-50%, 0) translate(${tx}px, ${ty}px) scale(${scale})`;
+
+        // Fade the card in over the first ~35% of the expand so it eases
+        // into view instead of appearing abruptly.
+        letter.style.opacity = clamp(p / 0.35, 0, 1).toFixed(3);
+      }
+
+      // ---------- FLIP: reveal the back near the bottom of the page ----------
+      const docScrollable = document.body.scrollHeight - window.innerHeight;
+      const scrolledFrac = docScrollable > 0 ? y / docScrollable : 0;
+      // flip once the user is within the last 12% of the page, and the photo
+      // has fully expanded so the flip reads cleanly
+      const nearBottom = scrolledFrac > 0.88 && p >= 0.999;
+      stage.classList.toggle('flipped', nearBottom);
+
+      // Keep the "scroll down" hint active the whole way; hide it only once
+      // the user is essentially at the very bottom of the page.
+      const atEnd = scrolledFrac > 0.985;
+      hint.classList.toggle('hide', atEnd);
+
+      // Swap the hint copy: once the photo has fully expanded, prompt the flip.
+      hint.textContent = (p >= 0.999) ? '↓ scroll to flip ↓' : '↓ scroll to open ↓';
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    window.addEventListener('load', onScroll);  // after image loads
+    onScroll();
+  </script>
+
+</body>
+</html>
