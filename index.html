@@ -1,0 +1,150 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Letter For You</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+    body {
+      font-family: Georgia, serif;
+      background: linear-gradient(160deg, #f3e9dc, #e8d5c4);
+      /* tall page so there's room to scroll */
+      height: 300vh;
+    }
+  
+    /* pin the envelope in the center of the viewport while you scroll */
+    .stage {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  
+    .envelope {
+      position: relative;
+      width: 340px;
+      height: 230px;
+      transition: transform 0.6s ease;
+    }
+  
+    /* envelope body */
+    .envelope .body {
+      position: absolute;
+      inset: 0;
+      background: #d9b382;
+      border-radius: 6px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      z-index: 3;
+    }
+  
+    /* front pocket (covers bottom of the letter) */
+    .envelope .pocket {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 60%;
+      background: #c9a06e;
+      border-radius: 0 0 6px 6px;
+      z-index: 5;
+      clip-path: polygon(0 35%, 50% 0, 100% 35%, 100% 100%, 0 100%);
+    }
+  
+    /* the flap that opens */
+    .envelope .flap {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: 55%;
+      background: #cfa871;
+      transform-origin: top center;
+      transition: transform 0.6s ease;
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      z-index: 6;
+    }
+  
+    /* the letter that rises out */
+    .letter {
+      position: absolute;
+      left: 50%;
+      top: 20px;
+      width: 88%;
+      transform: translateX(-50%);
+      background: #fffdf7;
+      border-radius: 4px;
+      padding: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      z-index: 4;
+      transition: transform 0.7s ease 0.3s;
+      text-align: center;
+    }
+  
+    .letter img {
+      width: 100%;
+      border-radius: 4px;
+      display: block;
+      margin-bottom: 10px;
+    }
+  
+    .letter p {
+      color: #5a4636;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+  
+    /* ---- OPEN STATE (toggled by scroll) ---- */
+    .open .flap {
+      transform: rotateX(180deg);
+      z-index: 1;               /* flap drops behind once open */
+    }
+    .open .letter {
+      transform: translate(-50%, -180px);
+    }
+  
+    .hint {
+      position: fixed;
+      bottom: 24px;
+      width: 100%;
+      text-align: center;
+      color: #7a6650;
+      font-size: 14px;
+      letter-spacing: 1px;
+      animation: bob 1.5s ease-in-out infinite;
+    }
+    @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+    .open ~ .hint { opacity: 0; transition: opacity .4s; }
+  </style>
+  </head>
+  <body>
+  
+    <div class="stage">
+      <div class="envelope" id="envelope">
+        <div class="letter">
+          <img src="photo.jpg" alt="A special photo">
+          <p>Thinking of you 💛</p>
+        </div>
+        <div class="body"></div>
+        <div class="pocket"></div>
+        <div class="flap"></div>
+      </div>
+    </div>
+  
+    <div class="hint">↓ scroll to open ↓</div>
+  
+    <script>
+      const envelope = document.getElementById('envelope');
+      // open once the user scrolls past ~15% of the page
+      window.addEventListener('scroll', () => {
+        const trigger = window.innerHeight * 0.15;
+        if (window.scrollY > trigger) {
+          envelope.classList.add('open');
+        } else {
+          envelope.classList.remove('open');
+        }
+      });
+    </script>
+  
+  </body>
+  </html>
