@@ -99,11 +99,11 @@
   .letter {
     position: fixed;            /* position relative to the viewport */
     left: 50%;
-    top: 24px;                  /* rest near the TOP of the viewport */
+    bottom: 60px;               /* rest near the BOTTOM of the viewport */
     width: fit-content;         /* shrink-wrap the photo, don't force a width */
     max-width: 98vw;
     z-index: 10;
-    transform-origin: top center;
+    transform-origin: bottom center;
     will-change: transform, opacity;
     opacity: 0;                 /* hidden during phase 1 */
     visibility: hidden;
@@ -148,7 +148,7 @@
        card (photo + frame + caption) stays within the viewport.
        Top-anchored (top:24px) with clearance for the bottom hint. */
     max-width: calc(96vw - 24px);
-    max-height: calc(84vh - 70px);
+    max-height: calc(80vh - 70px);
     width: auto;
     height: auto;
     object-fit: contain;        /* whole photo, uncropped */
@@ -259,11 +259,11 @@
 
   .hint {
     position: fixed;
-    top: 24px;
+    top: 34px;
     width: 100%;
     text-align: center;
     color: #7a6650;
-    font-size: 14px;
+    font-size: 16px;
     letter-spacing: 1px;
     animation: bob 1.5s ease-in-out infinite;
     transition: opacity .4s;
@@ -379,16 +379,17 @@
         const startScale = clamp(previewRect.width / finalW, 0.05, 1);
         const scale = startScale + (1 - startScale) * p;
 
-        // The card is anchored (transform-origin: top center) at
-        // (viewport centerX, top:24px). Compute how far the risen preview's
-        // center sits from that anchor, and interpolate toward 0 as p -> 1.
-        const REST_TOP = 24;    // must match .letter { top }
+        // The card is anchored (transform-origin: bottom center) at
+        // (viewport centerX, 24px above the viewport bottom). Compute how far
+        // the risen preview's center sits from that anchor, interpolate to 0.
+        const REST_BOTTOM = 60;    // must match .letter { bottom }
+        const restY = window.innerHeight - REST_BOTTOM;  // anchor's screen Y
         const startX = (previewRect.left + previewRect.width / 2)
                        - window.innerWidth / 2;
-        const startY = (previewRect.top + previewRect.height / 2) - REST_TOP;
+        const startY = (previewRect.top + previewRect.height / 2) - restY;
 
         const tx = startX * (1 - p);   // -> 0 (centered) as p -> 1
-        const ty = startY * (1 - p);   // -> 0 (rests at top) as p -> 1
+        const ty = startY * (1 - p);   // -> 0 (rests near bottom) as p -> 1
 
         letter.style.transform =
           `translate(-50%, 0) translate(${tx}px, ${ty}px) scale(${scale})`;
