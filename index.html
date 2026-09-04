@@ -22,6 +22,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 2;                 /* above .hint so the card covers it */
   }
 
   .envelope {
@@ -265,6 +266,7 @@
     color: #7a6650;
     font-size: 16px;
     letter-spacing: 1px;
+    z-index: 1;                 /* below .stage (2) so the card covers it */
     animation: bob 1.5s ease-in-out infinite;
     transition: opacity .4s;
   }
