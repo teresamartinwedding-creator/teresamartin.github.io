@@ -142,6 +142,7 @@
     justify-content: center;
     gap: 0;
     padding: 6% 8%;
+    overflow: hidden;           /* never spill outside the card */
   }
 
   .card-front img {
@@ -272,6 +273,25 @@
   }
   @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
   .hint.hide { opacity: 0; }
+
+  /* ---------- Mobile: keep the card tall enough for the back content ---------- */
+  @media (max-width: 600px) {
+    /* On a narrow screen the landscape photo makes a short, wide card.
+       Give it a minimum height so the flip side's text fits without spilling. */
+    .card-front img {
+      min-height: 60vh;
+      max-height: calc(78vh - 60px);
+    }
+    /* Scale the back-face typography down to fit the smaller card. */
+    .card-back { padding: 5% 6%; }
+    .card-back .eyebrow  { font-size: 11px; letter-spacing: 3px; margin-bottom: 6px; }
+    .card-back .names    { font-size: 34px; }
+    .card-back .rule     { font-size: 15px; margin: 10px 0 12px; }
+    .card-back .group    { margin-bottom: 11px; }
+    .card-back .primary  { font-size: 19px; }
+    .card-back .secondary{ font-size: 14px; }
+    .card-back .footnote { font-size: 14px; }
+  }
 </style>
 </head>
 <body>
