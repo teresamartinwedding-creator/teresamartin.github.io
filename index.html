@@ -33,7 +33,7 @@
   .envelope .body {
     position: absolute;
     inset: 0;
-    background: #d9b382;
+    background: #6b1f2a;   /* burgundy */
     border-radius: 6px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.25);
     z-index: 3;
@@ -44,9 +44,9 @@
     bottom: 0;
     width: 100%;
     height: 60%;
-    background: #c9a06e;
+    background: #5a1a24;   /* darker burgundy for the front pocket */
     border-radius: 0 0 6px 6px;
-    z-index: 7;  /* in front so the preview's bottom stays tucked while closed */
+    z-index: 6;  /* bottom flap (pocket): below the top flap */
     clip-path: polygon(0 35%, 50% 0, 100% 35%, 100% 100%, 0 100%);
   }
 
@@ -55,11 +55,11 @@
     top: 0;
     width: 100%;
     height: 55%;
-    background: #cfa871;
+    background: #7d2733;   /* lighter burgundy so the flap reads distinctly */
     transform-origin: top center;
     transition: transform 0.6s ease;
     clip-path: polygon(0 0, 100% 0, 50% 100%);
-    z-index: 6;
+    z-index: 7;  /* top flap: above the bottom flap (pocket) */
   }
 
   /* ---------- PHASE 1: cropped preview that rises out of the envelope ---------- */
@@ -204,6 +204,17 @@
     line-height: 1.3;
     margin-top: 2px;
   }
+  .card-back a {
+    color: #a9791c;             /* gold accent to match the wax/flourishes */
+    text-decoration: none;
+    border-bottom: 1px solid rgba(169,121,28,0.4);
+    padding-bottom: 1px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .card-back a:hover {
+    color: #d4af37;
+    border-color: #d4af37;
+  }
   .card-back .footnote {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-style: italic;
@@ -222,10 +233,26 @@
     transform: rotateX(180deg);
     z-index: 1;
   }
+
+  /* golden wax seal image, centered on the envelope's flap/pocket seam */
+  .seal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90px;
+    height: auto;
+    z-index: 8;                 /* above flap (6) and pocket (7) */
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4));
+    will-change: opacity, transform;
+    pointer-events: none;
+  }
+
   /* fade the envelope shell once we enter phase 2 */
   .expanding .body,
   .expanding .pocket,
-  .expanding .flap {
+  .expanding .flap,
+  .expanding .seal {
     opacity: 0;
     transition: opacity 0.5s ease;
   }
@@ -268,10 +295,16 @@
             <div class="group">
               <p class="primary">Friday, October 2nd</p>
               <p class="secondary">Doors open 4:00 PM</p>
+              <p class="secondary">Ceremony begins 4:30 PM</p>
             </div>
             <div class="group">
               <p class="primary">Thornewood Castle</p>
               <p class="secondary">8601 N Thorne Lane SW &middot; Lakewood, WA</p>
+            </div>
+            <div class="group">
+              <p class="primary">FAQ</p>
+              <p class="secondary"><a href="https://www.theknot.com/us/teresa-trieu-and-martin-kim-oct-2026/q-a" target="_blank" rel="noopener noreferrer">View commonly asked questions &rarr;</a></p>
+              <p class="secondary"><a href="https://withjoy.com/martin-and-teresa-wedding/registry?irclickid=1Bi38uWsxxyZRcRx-B24SRRtUkr20PxuUxImzM0&utm_medium=affiliate&utm_source=impactradius&utm_campaign=wedding&utm_content=Skimbit%20Ltd.&irgwc=1&afsrc=1" target="_blank" rel="noopener noreferrer">Contribute to our Registry &rarr;</a></p>
             </div>
             <p class="footnote">Reception &amp; dinner to follow</p>
           </div>
@@ -280,6 +313,7 @@
       <div class="body"></div>
       <div class="pocket"></div>
       <div class="flap"></div>
+      <img class="seal" id="seal" src="wax.png" alt="wax seal">
     </div>
   </div>
 
@@ -291,6 +325,7 @@
     const preview  = document.getElementById('preview');
     const letter   = document.getElementById('letter');
     const hint     = document.getElementById('hint');
+    const seal     = document.getElementById('seal');
 
     const RISE = 120;  // px the cropped preview travels up in phase 1
 
@@ -302,13 +337,19 @@
       const y  = window.scrollY;
 
       // --- scroll milestones ---
-      const flapOpenAt = vh * 0.12;   // flap flips open
-      const riseStart  = vh * 0.20;   // phase 1: preview begins rising
-      const riseEnd    = vh * 0.55;   // phase 1: preview fully risen
+      const sealFadeStart = vh * 0.03;  // seal begins fading almost immediately
+      const sealFadeEnd   = vh * 0.14;  // seal fully gone...
+      const flapOpenAt = vh * 0.17;     // ...before the flap opens
+      const riseStart  = vh * 0.24;   // phase 1: preview begins rising
+      const riseEnd    = vh * 0.58;   // phase 1: preview fully risen
       const expandStart = riseEnd;    // phase 2: begins right where rise ends
       const expandEnd   = vh * 1.40;  // phase 2: photo fully centered + full size
 
-      // Flap
+      // Seal: fade away in place (no lift/scale), before the flap opens
+      const sealP = ease(clamp((y - sealFadeStart) / (sealFadeEnd - sealFadeStart), 0, 1));
+      seal.style.opacity = (1 - sealP).toFixed(3);
+
+      // Flap: opens only once the seal has fully dissolved
       const opened = y > flapOpenAt;
       stage.classList.toggle('open', opened);
 
@@ -360,9 +401,9 @@
       // ---------- FLIP: reveal the back near the bottom of the page ----------
       const docScrollable = document.body.scrollHeight - window.innerHeight;
       const scrolledFrac = docScrollable > 0 ? y / docScrollable : 0;
-      // flip once the user is within the last 12% of the page, and the photo
+      // flip once the user is within the last 42% of the page, and the photo
       // has fully expanded so the flip reads cleanly
-      const nearBottom = scrolledFrac > 0.88 && p >= 0.999;
+      const nearBottom = scrolledFrac > 0.58 && p >= 0.999;
       stage.classList.toggle('flipped', nearBottom);
 
       // Keep the "scroll down" hint active the whole way; hide it only once
